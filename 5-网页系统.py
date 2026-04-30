@@ -3,57 +3,93 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 from io import BytesIO
+import json
+import os
 
 # ================== 全局设置 ==================
 plt.rcParams["font.sans-serif"] = ["SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 st.set_page_config(page_title="电商智能分析系统", layout="wide")
 
-# ================== 【多用户账号库】核心升级 ==================
-# 格式："账号": "密码"，无限添加客户！
-USER_ACCOUNTS = {
-    "admin": "123456",       # 你的管理员账号
-    "kehu1": "123456",       # 客户1
-    "kehu2": "123456",       # 客户2
-    "kehu3": "123456",       # 客户3
-    # 继续添加："客户账号": "客户密码"
-}
+# ================== 用户账号存储（自动保存，不丢失） ==================
+USERS_FILE = "users.json"
 
-# ================== 登录逻辑 ==================
+# 加载用户账号
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    # 默认初始化管理员账号
+    return {"admin": "123456"}
+
+# 保存用户账号
+def save_users(users):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, ensure_ascii=False, indent=2)
+
+# ================== 登录/注册状态控制 ==================
 if "login_status" not in st.session_state:
     st.session_state.login_status = False
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
+if "auth_mode" not in st.session_state:
+    st.session_state.auth_mode = "login"  # login / register
 
-# 验证账号密码
-def verify_user(username, password):
-    if username in USER_ACCOUNTS and USER_ACCOUNTS[username] == password:
-        return True
-    return False
-
-# 未登录 → 显示登录页
+# ================== 登录/注册表单 ==================
 if not st.session_state.login_status:
-    st.title("电商智能分析平台 - 客户登录系统")
-    st.sidebar.header("账号登录")
-    
-    username = st.sidebar.text_input("请输入账号")
-    password = st.sidebar.text_input("请输入密码", type="password")
-    
-    if st.sidebar.button("登录系统", use_container_width=True):
-        if verify_user(username, password):
-            st.session_state.login_status = True
-            st.session_state.current_user = username
+    st.title("电商智能分析系统")
+    st.markdown("---")
+
+    # 切换登录/注册模式
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("已有账号？登录", use_container_width=True, disabled=st.session_state.auth_mode == "login"):
+            st.session_state.auth_mode = "login"
             st.rerun()
-        else:
-            st.sidebar.error("账号或密码错误，请重试！")
-    
-    st.markdown("""
-    ### 欢迎使用电商大数据分析系统
-    请输入您的专属账号密码登录使用
-    """)
+    with col2:
+        if st.button("没有账号？注册", use_container_width=True, disabled=st.session_state.auth_mode == "register"):
+            st.session_state.auth_mode = "register"
+            st.rerun()
+
+    # 登录表单
+    if st.session_state.auth_mode == "login":
+        st.subheader("用户登录")
+        username = st.text_input("账号")
+        password = st.text_input("密码", type="password")
+        
+        if st.button("登录系统", use_container_width=True):
+            users = load_users()
+            if username in users and users[username] == password:
+                st.session_state.login_status = True
+                st.session_state.current_user = username
+                st.rerun()
+            else:
+                st.error("账号或密码错误，请重试！")
+
+    # 注册表单
+    elif st.session_state.auth_mode == "register":
+        st.subheader("注册新账号")
+        new_username = st.text_input("设置账号（不可重复）")
+        new_password = st.text_input("设置密码", type="password")
+        confirm_password = st.text_input("确认密码", type="password")
+        
+        if st.button("立即注册", use_container_width=True):
+            users = load_users()
+            if new_username in users:
+                st.error("该账号已存在，请换一个！")
+            elif new_password != confirm_password:
+                st.error("两次输入的密码不一致！")
+            elif len(new_password) < 6:
+                st.error("密码长度至少6位！")
+            else:
+                # 保存新用户
+                users[new_username] = new_password
+                save_users(users)
+                st.success("注册成功！请切换到登录页登录~")
+
     st.stop()
 
-# ================== 主系统 ==================
+# ================== 主系统（登录后显示） ==================
 with st.sidebar:
     st.title(f"欢迎您，{st.session_state.current_user}")
     st.markdown("---")
@@ -69,6 +105,7 @@ with st.sidebar:
     if st.button("退出登录", use_container_width=True):
         st.session_state.login_status = False
         st.session_state.current_user = None
+        st.session_state.auth_mode = "login"
         st.rerun()
 
 st.title("电商大数据智能分析平台")
