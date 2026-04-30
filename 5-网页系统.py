@@ -8,7 +8,7 @@ import os
 
 # ================== 全局配置与美化CSS ==================
 st.set_page_config(
-    page_title="电商智能分析平台",
+    page_title="HQY商分平台",
     page_icon="🛒",
     layout="wide",
     initial_sidebar_state="expanded"
