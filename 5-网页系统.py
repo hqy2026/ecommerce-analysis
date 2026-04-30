@@ -6,24 +6,35 @@ from io import BytesIO
 import json
 import os
 
-# ================== 全局配置与美化CSS ==================
+# ================== 全局配置与强制CSS（彻底消除空白） ==================
 # 【网站名字修改点1：浏览器标签名】
 st.set_page_config(
-    page_title="HQY商分平台",
+    page_title="电商智能分析平台",
     page_icon="🛒",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 自定义全局CSS美化（修复登录页空白问题）
+# 【核心修复：强制重置所有默认边距，消除顶部空白】
 st.markdown("""
 <style>
-/* 全局字体与背景 */
+/* 全局重置：去掉所有默认边距 */
 * {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
     font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
 }
+/* 强制去掉应用容器的顶部内边距 */
 [data-testid="stAppViewContainer"] {
     background-color: #f8f9fa;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+/* 去掉标题的默认上边距 */
+[data-testid="stTitle"] {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 /* 卡片样式 */
 .card {
@@ -67,15 +78,14 @@ st.markdown("""
         color: white;
     }
 }
-/* 【修复登录页空白：去掉大上边距，紧凑居中】 */
+/* 登录框：上下居中，无多余空白 */
 .login-container {
     max-width: 400px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
+    margin: 3rem auto !important; /* 改为上下居中，消除顶部空白 */
+    padding: 2rem 1.5rem;
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    margin-top: 1rem;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -101,7 +111,7 @@ if "auth_mode" not in st.session_state:
 
 # ================== 【修复后】登录/注册页（无大空白） ==================
 if not st.session_state.login_status:
-    # 登录页紧凑居中，无多余空白
+    # 登录框上下居中，无多余空白
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     
     # 【网站名字修改点2：登录页大标题】
