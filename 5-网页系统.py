@@ -7,6 +7,7 @@ import json
 import os
 
 # ================== 全局配置与美化CSS ==================
+# 【网站名字修改点1：浏览器标签名】
 st.set_page_config(
     page_title="HQY商分平台",
     page_icon="🛒",
@@ -14,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 自定义全局CSS美化
+# 自定义全局CSS美化（修复登录页空白问题）
 st.markdown("""
 <style>
 /* 全局字体与背景 */
@@ -66,14 +67,15 @@ st.markdown("""
         color: white;
     }
 }
-/* 登录页居中 */
+/* 【修复登录页空白：去掉大上边距，紧凑居中】 */
 .login-container {
     max-width: 400px;
-    margin: 5rem auto;
-    padding: 2rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
     background: white;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin-top: 1rem;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -97,10 +99,12 @@ if "current_user" not in st.session_state:
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "login"
 
-# ================== 美化版登录/注册页 ==================
+# ================== 【修复后】登录/注册页（无大空白） ==================
 if not st.session_state.login_status:
-    # 登录页居中卡片
+    # 登录页紧凑居中，无多余空白
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
+    
+    # 【网站名字修改点2：登录页大标题】
     st.title("🛒 电商智能分析平台")
     st.markdown("---")
 
@@ -151,7 +155,7 @@ if not st.session_state.login_status:
     st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
-# ================== 主系统侧边栏（美化版） ==================
+# ================== 主系统侧边栏 ==================
 with st.sidebar:
     st.title(f"👋 欢迎，{st.session_state.current_user}")
     st.markdown("---")
@@ -175,7 +179,7 @@ with st.sidebar:
         st.session_state.auth_mode = "login"
         st.rerun()
 
-# 深色模式适配（通过CSS变量控制）
+# 深色模式适配
 if theme == "深色模式":
     st.markdown("""
     <style>
@@ -185,11 +189,11 @@ if theme == "深色模式":
     </style>
     """, unsafe_allow_html=True)
 
-# ================== 主界面标题 ==================
+# 【网站名字修改点3：主页面大标题】
 st.title("📊 电商大数据智能分析平台")
 st.markdown("---")
 
-# ================== 数据加载（带加载动画） ==================
+# ================== 数据加载 ==================
 @st.cache_data(ttl=3600)
 def load_data(file):
     try:
@@ -216,7 +220,7 @@ if df is None: st.stop()
 df = df[(df["日期"] >= day1) & (df["日期"] <= day2)]
 buy = df[df["行为类型"]=="购买"]
 
-# ================== 1. 数据概览（卡片式布局） ==================
+# ================== 1. 数据概览 ==================
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("📌 数据概览")
 col1, col2, col3, col4 = st.columns(4)
@@ -230,7 +234,7 @@ with col4:
     st.metric("购买次数", len(buy), help="成功购买订单数")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== 2. 用户价值分层（美化图表） ==================
+# ================== 2. 用户价值分层 ==================
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("👥 用户价值分层")
 if len(buy) > 0:
@@ -262,7 +266,7 @@ else:
     st.info("当前日期范围内无购买数据，无法进行用户分群分析")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== 3. 销量趋势（美化图表） ==================
+# ================== 3. 销量趋势 ==================
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("📈 销量趋势分析")
 if len(buy) > 0:
@@ -291,7 +295,7 @@ funnel = df["行为类型"].value_counts().reindex(["点击","收藏","加购","
 st.bar_chart(funnel, color="#3399ff", use_container_width=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ================== 6. 导出报告（美化按钮） ==================
+# ================== 6. 导出报告 ==================
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("📥 导出分析报告")
 def excel():
